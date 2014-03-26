@@ -284,7 +284,8 @@ class AdminTranslationsControllerCore extends AdminController
 			elseif (!touch($file_path))
 				throw new PrestaShopException(sprintf(Tools::displayError('File "%s" cannot be created'), $file_path));
 		}
-		$kpi_key = substr(strtoupper(Tools::getValue('theme').'_'.Tools::getValue('lang')), 0, 16);
+		$thm_name = str_replace('.', '', Tools::getValue('theme'));
+		$kpi_key = substr(strtoupper($thm_name.'_'.Tools::getValue('lang')), 0, 16);
 
 		if ($fd = fopen($file_path, 'w'))
 		{
@@ -532,7 +533,10 @@ class AdminTranslationsControllerCore extends AdminController
 			$dir_iso_code = substr($file_iso_code, 0, -(strlen($file_iso_code) - strrpos($file_iso_code, '/') - 1));
 
 			if (!file_exists($dir_iso_code))
+			{
 				mkdir($dir_iso_code);
+				file_put_contents($dir_iso_code.'/index.php', Tools::getDefaultIndexContent());
+			}
 
 			if (Tools::file_exists_cache($file_en))
 				copy($file_en, $file_iso_code);
@@ -1654,7 +1658,7 @@ class AdminTranslationsControllerCore extends AdminController
 			var openAll = \''.html_entity_decode($this->l('Expand all fieldsets'), ENT_NOQUOTES, 'UTF-8').'\';
 			var closeAll = \''.html_entity_decode($this->l('Close all fieldsets'), ENT_NOQUOTES, 'UTF-8').'\';
 		</script>
-		<button type="button" class="btn btn-default" id="buttonall" data-status="open" onclick="toggleDiv(\''.$this->type_selected.'_div\', $(this).data(\'status\')); toggleButtonValue(this.id, openAll, closeAll);"><i class="process-icon-minus"></i> <span>'.$this->l('Close all fieldsets').'</span></button>';
+		<button type="button" class="btn btn-default" id="buttonall" data-status="open" onclick="toggleDiv(\''.$this->type_selected.'_div\', $(this).data(\'status\')); toggleButtonValue(this.id, openAll, closeAll);"><i class="process-icon-compress"></i> <span>'.$this->l('Close all fieldsets').'</span></button>';
 		return $str_output;
 	}
 
@@ -2205,7 +2209,7 @@ class AdminTranslationsControllerCore extends AdminController
 			}
 		}
 		else
-			$this->warnings[] = sprintf(Tools::displayError('A mail directory exists for %1$s but not for English in %2$s'),
+			$this->warnings[] = sprintf(Tools::displayError('A mail directory exists for the "%1$s" language, but not for the English language in %2$s'),
 				$this->lang_selected->iso_code, str_replace(_PS_ROOT_DIR_, '', $dir));
 		return $arr_return;
 	}

@@ -48,8 +48,8 @@ class FrontControllerCore extends Controller
 	protected $restrictedCountry = false;
 	protected $maintenance = false;
 
-	public $display_column_left;
-	public $display_column_right;
+	public $display_column_left = true;
+	public $display_column_right = true;
 
 	public static $initialized = false;
 
@@ -64,7 +64,7 @@ class FrontControllerCore extends Controller
 		global $useSSL;
 
 		parent::__construct();
-		
+
 		if (Configuration::get('PS_SSL_ENABLED') && Configuration::get('PS_SSL_ENABLED_EVERYWHERE'))
 			$this->ssl = true;
 
@@ -72,9 +72,13 @@ class FrontControllerCore extends Controller
 			$this->ssl = $useSSL;
 		else
 			$useSSL = $this->ssl;
-			
-		$this->display_column_left = ((isset($this->php_self) && is_object(Context::getContext()->theme)) ? Context::getContext()->theme->hasLeftColumn($this->php_self) : true);
-		$this->display_column_right = ((isset($this->php_self) && is_object(Context::getContext()->theme)) ? Context::getContext()->theme->hasRightColumn($this->php_self) : true);
+
+		if (isset($this->php_self)  && is_object(Context::getContext()->theme))
+		{
+			$colums = Context::getContext()->theme->hasColumns($this->php_self);
+			$this->display_column_left = $colums['left_column'];
+			$this->display_column_right = $colums['right_column'];
+		}
 	}
 
 	/**
@@ -476,7 +480,7 @@ class FrontControllerCore extends Controller
 
 		$this->context->smarty->assign(array(
 			'css_files' => $this->css_files,
-			'js_files' => array() // assign moved to smartyOutputContent since 1.6
+			'js_files' => $this->getLayout() ? array() : $this->js_files
 		));
 
 		$this->display_header = $display;
@@ -531,7 +535,7 @@ class FrontControllerCore extends Controller
 
 		$this->context->smarty->assign(array(
 			'css_files' => $this->css_files,
-			'js_files' => array(), // assign moved to smartyOutputContent since 1.6
+			'js_files' => $this->getLayout() ? array() : $this->js_files,
 			'errors' => $this->errors,
 			'display_header' => $this->display_header,
 			'display_footer' => $this->display_footer,
@@ -1143,7 +1147,7 @@ class FrontControllerCore extends Controller
 	
 	protected function getOverrideThemeDir()
 	{
-		return $this->useMobileTheme() ? _PS_THEME_MOBILE_OVERRIDE_DIR_ : _PS_THEME_MOBILE_DIR_;
+		return $this->useMobileTheme() ? _PS_THEME_MOBILE_OVERRIDE_DIR_ : _PS_THEME_OVERRIDE_DIR_;
 	}
 	
 	/**

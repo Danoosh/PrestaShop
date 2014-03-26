@@ -77,7 +77,7 @@ class AdminModulesControllerCore extends AdminController
 		$this->list_modules_categories['advertising_marketing']['name'] = $this->l('Advertising and Marketing');
 		$this->list_modules_categories['analytics_stats']['name'] = $this->l('Analytics and Stats');
 		$this->list_modules_categories['billing_invoicing']['name'] = $this->l('Taxes & Invoicing');
-/* 		$this->list_modules_categories['checkout']['name'] = $this->l('Checkout'); */
+ 		$this->list_modules_categories['checkout']['name'] = $this->l('Checkout');
 		$this->list_modules_categories['content_management']['name'] = $this->l('Content Management');
 		$this->list_modules_categories['export']['name'] = $this->l('Export');
 		$this->list_modules_categories['emailing']['name'] = $this->l('Emailing');
@@ -261,6 +261,13 @@ class AdminModulesControllerCore extends AdminController
 		{
 			$tab_modules_list = explode(',', $tab_modules_list);
 			$all_modules = Module::getModulesOnDisk(true, $this->logged_on_addons, $this->id_employee);
+			
+			$all_unik_modules = array();
+			foreach ($all_modules as $mod)
+				if (!isset($all_unik_modules[$mod->name]))
+					$all_unik_modules[$mod->name] = $mod;
+			$all_modules = $all_unik_modules;
+			
 			foreach($all_modules as $module)
 			{
 				if (in_array($module->name, $tab_modules_list))
@@ -291,6 +298,7 @@ class AdminModulesControllerCore extends AdminController
 				}		
 			}
 		}
+		
 		$this->context->smarty->assign(array(
 			'tab_modules_list' => $modules_list,
 			'admin_module_favorites_view' => $this->context->link->getAdminLink('AdminModules').'&select=favorites'
@@ -542,7 +550,7 @@ class AdminModulesControllerCore extends AdminController
 	public function postProcessDownload()
 	{
 	 	// PrestaShop demo mode
-		if (_PS_MODE_DEMO_)
+		if (_PS_MODE_DEMO_ || defined('_PS_HOST_MODE_'))
 		{
 			$this->errors[] = Tools::displayError('This functionality has been disabled.');
 			return;
@@ -732,7 +740,7 @@ class AdminModulesControllerCore extends AdminController
 				{
 					$full_report = null;
 					// If Addons module, download and unzip it before installing it
-					if (!file_exists('../modules/'.$name.'/'.$name.'.php') || $key == 'update' || $key == 'checkAndUpdate')
+					if (!file_exists(_PS_MODULE_DIR_.$name.'/'.$name.'.php') || $key == 'update' || $key == 'checkAndUpdate')
 					{
 						$filesList = array(
 							array('type' => 'addonsNative', 'file' => Module::CACHE_FILE_DEFAULT_COUNTRY_MODULES_LIST, 'loggedOnAddons' => 0),
@@ -749,11 +757,9 @@ class AdminModulesControllerCore extends AdminController
 										if ($name == $modaddons->name && isset($modaddons->id) && ($this->logged_on_addons || $f['loggedOnAddons'] == 0))
 										{
 											$download_ok = false;
-											if ($f['loggedOnAddons'] == 0)
-												if (file_put_contents(_PS_MODULE_DIR_.$modaddons->name.'.zip', Tools::addonsRequest('module', array('id_module' => pSQL($modaddons->id)))))
+											if ($f['loggedOnAddons'] == 0 && file_put_contents(_PS_MODULE_DIR_.$modaddons->name.'.zip', Tools::addonsRequest('module', array('id_module' => pSQL($modaddons->id)))))
 													$download_ok = true;
-											elseif ($f['loggedOnAddons'] == 1 && $this->logged_on_addons)
-												if (file_put_contents(_PS_MODULE_DIR_.$modaddons->name.'.zip', Tools::addonsRequest('module', array('id_module' => pSQL($modaddons->id), 'username_addons' => pSQL(trim($this->context->cookie->username_addons)), 'password_addons' => pSQL(trim($this->context->cookie->password_addons))))))
+											elseif ($f['loggedOnAddons'] == 1 && $this->logged_on_addons && file_put_contents(_PS_MODULE_DIR_.$modaddons->name.'.zip', Tools::addonsRequest('module', array('id_module' => pSQL($modaddons->id), 'username_addons' => pSQL(trim($this->context->cookie->username_addons)), 'password_addons' => pSQL(trim($this->context->cookie->password_addons))))))
 													$download_ok = true;
 
 											if (!$download_ok)
@@ -906,7 +912,7 @@ class AdminModulesControllerCore extends AdminController
 							unset(Context::getContext()->tmpOldShop);
 						}
 					}
-					if ($key != 'configure' && isset($_GET['bpay']))
+					if ($key != 'configure' && Tools::getIsset('bpay'))
 						Tools::redirectAdmin('index.php?tab=AdminPayment&token='.Tools::getAdminToken('AdminPayment'.(int)(Tab::getIdFromClassName('AdminPayment')).(int)$this->id_employee));
 				}
 			if (count($module_errors))
@@ -931,7 +937,7 @@ class AdminModulesControllerCore extends AdminController
 		{
 			if (isset($modules_list_save))
 				Tools::redirectAdmin(self::$currentIndex.'&token='.$this->token.'&updated=1&module_name='.$modules_list_save);
-			elseif ($module)
+			elseif (isset($module))
 				Tools::redirectAdmin(self::$currentIndex.'&token='.$this->token.'&updated=1tab_module='.$module->tab.'&module_name='.$module->name.'&anchor='.ucfirst($module->name).(isset($modules_list_save) ? '&modules_list='.$modules_list_save : ''));
 		}
 	}
@@ -1195,11 +1201,9 @@ class AdminModulesControllerCore extends AdminController
 		$categoryFiltered = array();
 		$filterCategories = explode('|', Configuration::get('PS_SHOW_CAT_MODULES_'.(int)$this->id_employee));
 		if (count($filterCategories) > 0)
-		{
 			foreach ($filterCategories as $fc)
 				if (!empty($fc))
 					$categoryFiltered[$fc] = 1;
-		}
 
 		if (empty($categoryFiltered) && Tools::getValue('tab_module'))
 			$categoryFiltered[Tools::getValue('tab_module')] = 1;
@@ -1326,12 +1330,12 @@ class AdminModulesControllerCore extends AdminController
 				unset($modules[$km]);
 			else
 			{
-				$this->fillModuleData($module, 'array');
-				$module->categoryName = (isset($this->list_modules_categories[$module->tab]['name']) ? $this->list_modules_categories[$module->tab]['name'] : $this->list_modules_categories['others']['name']);
-
 				if (isset($modules_preferences[$modules[$km]->name]))
 					$modules[$km]->preferences = $modules_preferences[$modules[$km]->name];
-			}
+
+				$this->fillModuleData($module, 'array');
+				$module->categoryName = (isset($this->list_modules_categories[$module->tab]['name']) ? $this->list_modules_categories[$module->tab]['name'] : $this->list_modules_categories['others']['name']);
+					}
 			unset($object);
 			if ($module->installed && isset($module->version_addons) && $module->version_addons)
 				$upgrade_available[] = array('anchor' => ucfirst($module->name), 'name' => $module->name, 'displayName' => $module->displayName);

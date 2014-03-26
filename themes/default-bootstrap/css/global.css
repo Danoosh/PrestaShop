@@ -5282,8 +5282,6 @@ header {
       margin: 0px; }
     header .nav nav {
       width: 100%; }
-      header .nav nav #currencies-block-top {
-        float: right; }
   header .row {
     position: relative; }
     header .row > .container {
@@ -5298,8 +5296,9 @@ header {
           padding-top: 15px; }
           header .row #header_logo img {
             margin: 0 auto; } }
-  header .col-sm-4 + .col-sm-4 + .col-sm-4, header .row #header_logo + .col-sm-4 + .col-sm-4, header .row .col-sm-4 + #header_logo + .col-sm-4, header .row #header_logo + #header_logo + .col-sm-4, header .row .col-sm-4 + .col-sm-4 + #header_logo, header .row #header_logo + .col-sm-4 + #header_logo, header .row .col-sm-4 + #header_logo + #header_logo, header .row #header_logo + #header_logo + #header_logo {
-    float: right; }
+  @media (min-width: 767px) {
+    header .col-sm-4 + .col-sm-4 + .col-sm-4, header .row #header_logo + .col-sm-4 + .col-sm-4, header .row .col-sm-4 + #header_logo + .col-sm-4, header .row #header_logo + #header_logo + .col-sm-4, header .row .col-sm-4 + .col-sm-4 + #header_logo, header .row #header_logo + .col-sm-4 + #header_logo, header .row .col-sm-4 + #header_logo + #header_logo, header .row #header_logo + #header_logo + #header_logo {
+      float: right; } }
 
 .ie8 #header #header_logo {
   width: 350px; }

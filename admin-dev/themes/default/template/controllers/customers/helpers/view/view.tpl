@@ -40,12 +40,13 @@
 					<a href="mailto:{$customer->email}"><i class="icon-envelope"></i>
 						{$customer->email}
 					</a>
-					<a class="btn btn-default pull-right" href="{$current}&amp;updatecustomer&amp;id_customer={$customer->id}&amp;token={$token}">
-						<i class="icon-edit"></i>
-						{l s='Edit'}
-					</a>
+					<div class="panel-heading-action">
+						<a class="btn btn-default" href="{$current}&amp;updatecustomer&amp;id_customer={$customer->id}&amp;token={$token}">
+							<i class="icon-edit"></i>
+							{l s='Edit'}
+						</a>
+					</div>
 				</div>
-
 				<div class="form-horizontal">
 					<div class="row">
 						<label class="control-label col-lg-3">{l s='Social Title'}</label>
@@ -207,7 +208,7 @@
 									<th class="center"><span class="title_box ">{l s='ID'}</span></th>
 									<th><span class="title_box">{l s='Date'}</span></th>
 									<th><span class="title_box">{l s='Payment'}</span></th>
-									<th><span class="title_box">{l s='State'}</span></th>
+									<th><span class="title_box">{l s='Status'}</span></th>
 									<th><span class="title_box">{l s='Products'}</span></th>
 									<th><span class="title_box ">{l s='Total spent'}</span></th>
 									<th></th>
@@ -240,7 +241,7 @@
 									<th><span class="title_box ">{l s='ID'}</span></th>
 									<th><span class="title_box ">{l s='Date'}</span></th>
 									<th><span class="title_box ">{l s='Payment'}</span></th>
-									<th><span class="title_box ">{l s='State'}</span></th>
+									<th><span class="title_box ">{l s='Status'}</span></th>
 									<th><span class="title_box ">{l s='Products'}</span></th>
 									<th><span class="title_box ">{l s='Total spent'}</span></th>
 								</tr>
